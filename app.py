@@ -1,8 +1,39 @@
+import os
 from flask import Flask
 from flask import url_for
 from flask import render_template
+from flask_sqlalchemy import SQLAlchemy
+import click
+
 
 app = Flask(__name__)
+db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(app.root_path, 'data.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))
+    
+
+class Movie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(60))  # 电影标题
+    year = db.Column(db.String(4))  # 电影年份
+
+
+
+@app.cli.command()  # 注册为命令
+@click.option('--drop', is_flag=True, help='Create after drop.')  # 设置选项
+def initdb(drop):
+    """Initialize the database."""
+    if drop:  # 判断是否输入了选项
+        db.drop_all()
+    db.create_all()
+    click.echo('Initialized database.')  # 输出提示信息
+
+
 
 name = 'Grey Li'
 movies = [
@@ -27,7 +58,7 @@ def index():
 @app.route('/user/<name>')
 def user_page(name):
     return 'User %s' % name
-    
+
 @app.route('/test')
 def test_url_for():
     print(url_for('hello'))
