@@ -32,11 +32,14 @@ def initdb(drop):
         db.drop_all()
     db.create_all()
     click.echo('Initialized database.')  # 输出提示信息
-
-
-
-name = 'Grey Li'
-movies = [
+    
+    
+@app.cli.command()
+def forge():
+    db.create_all()
+    
+    name = 'Grey Li'
+    movies = [
     {'title': 'My Neighbor Totoro', 'year': '1988'},
     {'title': 'Dead Poets Society', 'year': '1989'},
     {'title': 'A Perfect World', 'year': '1993'},
@@ -47,13 +50,28 @@ movies = [
     {'title': 'Devils on the Doorstep', 'year': '1999'},
     {'title': 'WALL-E', 'year': '2008'},
     {'title': 'The Pork of Music', 'year': '2012'},
-]
+    ]
+    
+    user = User(name=name)
+    db.session.add(user)
+    for m in movies:
+        movie = Movie(title=m['title'], year=m['year'])
+        db.session.add(movie)
+    
+    db.session.commit()
+    click.echo('Done')
+
+
+
+
 
 
 
 @app.route('/')
 def index():
-    return render_template('index.html', name=name, movies=movies)
+    user = User.query.first()
+    movies = Movie.query.all()
+    return render_template('index.html', user=user, movies=movies)
     
 @app.route('/user/<name>')
 def user_page(name):
